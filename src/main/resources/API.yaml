@@ -1,0 +1,1024 @@
+openapi: 3.0.0
+info:
+  title: API Plataforma de Reportes
+  description: |-
+    Proyecto final programacion avanzada Definicion de una API en Swagger.
+    
+    _Integrantes: Jordy Diaz - Jenniffer Suarez - John Cifuentes_
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+tags:
+  - name: Usuarios
+    description: Operaciones relacionadas con los usuarios
+  - name: Login
+    description: Operaciones de inicio de sesión
+  - name: Reportes
+    description: Operaciones con reportes
+  - name: Notificaciones
+    description: notificaciones de reportes
+  - name: Moderador
+    description: Operaciones relacionadas con los moderadores
+paths:
+  /usuarios:
+    post:
+      tags:
+        - Usuarios
+      summary: Registro de usuarios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+      responses:
+        '201':
+          description: Usuario creado exitosamente.
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '409':
+          description: Email Repetido.
+        '500' :
+          description: Error interno del servidor.
+  /usuarios/notificacion:
+    post:
+      tags:
+        - Usuarios
+      summary: Notificacion de codigo a correo electronico
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsuarioActivacion'
+      responses:
+        '200':
+          description: Codigo enviado exitosamente.
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '500':
+          description: Error interno del servidor.
+  /usuarios/activar:
+    post:
+      tags:
+        - Usuarios
+      summary: Activación de cuenta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsuarioActivacion'
+      responses:
+        '200':
+          description: Cuenta activada exitosamente.
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+  /usuarios/{id}:
+    put:
+      tags:
+        - Usuarios
+      summary: Editar perfil del usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditarUsuario'
+      responses:
+        '200':
+          description: Usuario actualizado exitosamente.
+        '400':
+          description: Datos inválidos.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Usuario no encontrado
+        '500':
+          description: Error interno del servidor
+    delete:
+      tags:
+        - Usuarios
+      summary: Eliminar cuenta del usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Usuario eliminado exitosamente.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Usuario no encontrado
+        '500':
+          description: Error interno del servidor
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener información del usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Información del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObtenerUsuario'
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Usuario no encontrado.
+        '500':
+          description: Error interno del servidor
+
+  /usuarios/{id}/password:
+    put:
+      tags:
+        - Usuarios
+      summary: Cambiar contraseña
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordRequest'
+      responses:
+        '200':
+          description: Contraseña cambiada exitosamente.
+        '400':
+          description: Datos inválidos.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+  /login:
+    post:
+      tags:
+        - Login
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '404':
+          description: Usuario no encontrado.
+        '500':
+          description: Error interno del servidor
+  /login/codigoValidacion:
+    post:
+      tags:
+        - Login
+      summary: Recuperar contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordOlvidado'
+      responses:
+        '200':
+          description: Codigo enviado al correo
+        '404':
+          description: Correo no registrado
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '500':
+          description: Error interno del servidor
+  /login/password/nuevo:
+    post:
+      tags:
+        - Login
+      summary: Actualizar nueva contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordNuevo'
+      responses:
+        '200':
+          description: Contraseña actualizada
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '500':
+          description: Error interno del servidor
+  /reportes:
+    post:
+      tags:
+        - Reportes
+      summary: Registro de reportes
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reporte'
+      responses:
+        '201' :
+          description: Reporte creado exitosamente.
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '401':
+          description: Falta autenticacion
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+    get:
+      tags:
+        - Reportes
+      summary: Obtener lista de reporte.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Categorias.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reporte"
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Categorías no encontradas.
+        '500':
+          description: Error interno del servidor
+  /reportes/{idUsuario}:
+    get:
+      tags:
+        - Reportes
+      summary: obtener reportes del usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: idUsuario
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200' :
+          description: Reportes del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reporte"
+        '404':
+          description: Usuario no encontrado
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+  /reportes/ubicacion:
+    get:
+      tags:
+        - Reportes
+      summary: obtener reportes cerca del usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: latitud
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: longitud
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: radio
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 5
+          description: "Radio de búsqueda en kilómetros (valor por defecto: 5 km)"
+      responses:
+        '200' :
+          description: Reportes cerca del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reporte"
+        '404':
+          description: Usuario no encontrado
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+  /reportes/topImportantes:
+    get:
+      tags:
+        - Reportes
+      summary: Obtener los 10 reportes con más  "importante"
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de los 10 reportes con más interacciones de "importante"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reporte"
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+  /reportes/{id}:
+    put:
+      tags:
+        - Reportes
+      summary: Editar reporte del usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditarReporte'
+      responses:
+        '200' :
+          description: Reporte actualizado
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Código de reporte no encontrado
+        '500':
+          description: Error interno del servidor
+    delete:
+      tags:
+        - Reportes
+      summary: Eliminar reporte del usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200' :
+          description: Reporte actualizado
+        '404':
+          description: Código de reporte no encontrado
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+    get:
+      tags:
+        - Reportes
+      summary: Obtener información de reporte
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalles del reporte.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reporte'
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Reporte no encontrado.
+        '500':
+          description: Error interno del servidor
+
+  /reportes/{id}/comentario:
+    post:
+      tags:
+        - Reportes
+      summary: Crear comentario en reporte
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComentarioReporte'
+      responses:
+        '201' :
+          description: Comentario creado exitosamente
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Código de reporte no encontrado
+        '500':
+          description: Error interno del servidor
+  /reportes/{idReporte}/comentarios:
+    get:
+      tags:
+        - Reportes
+      summary: Obtener todos los comentarios de un reporte
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: idReporte
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID del reporte del cual se quieren obtener los comentarios."
+      responses:
+        '200':
+          description: Lista de comentarios del reporte
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComentarioReporte'
+        '404':
+          description: Reporte no encontrado o sin comentarios.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+  /reportes/{id}/importante:
+    put:
+      tags:
+        - Reportes
+      summary: Calificar reporte como importante
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200' :
+          description: Contador aumentado
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Codigo de reporte no encontrado
+        '500':
+          description: Error interno del servidor
+  /reportes/{id}/estado:
+    post:
+      tags:
+        - Reportes
+      summary: Cambiar estado de reporte
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstadoReporte'
+      responses:
+        '200' :
+          description: Estado Reporte actualizado
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Codigo de reporte no encontrado
+        '500':
+          description: Error interno del servidor
+  /reportes/categoria/ubicacion:
+    get:
+      tags:
+        - Reportes
+      summary: Obtener cantidad de reportes por categoría en una ubicación
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: latitud
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: longitud
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: radio
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 5
+          description: "Radio de búsqueda en kilómetros (valor por defecto: 5 km)"
+      responses:
+        '200':
+          description: Datos para generar un diagrama de barras de reportes por categoría
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    categoria:
+                      type: string
+                      example: "Accidente"
+                    cantidad:
+                      type: integer
+                      example: 15
+        '404':
+          description: No se encontraron reportes en esta ubicación.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+  /notificaciones/email:
+    post:
+      tags:
+        - Notificaciones
+      summary: notificacion a correo electronico
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notificacion'
+      responses:
+        '201':
+          description: Notificacion enviada
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '500':
+          description: Error interno del servidor
+  /notificaciones/ubicacion:
+    post:
+      tags:
+        - Notificaciones
+      summary: notificacion cerca a ubicacion de reporte
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificacionUbicacion'
+      responses:
+        '201':
+          description: Notificacion enviada
+        '400':
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+  /moderador/categorias:
+    post:
+      tags:
+        - Moderador
+      summary: Crear categoría de reporte
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+      responses:
+        "201":
+          description: Categoría creada exitosamente.
+        "400":
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '500':
+          description: Error interno del servidor
+    get:
+      tags:
+        - Moderador
+      summary: Obtener lista de categorias
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Categorias.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCategoria'
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: Categorías no encontradas.
+        '500':
+          description: Error interno del servidor
+  /moderador/categorias/{id}:
+    put:
+      tags:
+        - Moderador
+      summary: Editar categoría de reporte
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+      responses:
+        "200":
+          description: Categoría editada
+        "400":
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: categoría no existe.
+        '500':
+          description: Error interno del servidor
+    delete:
+      tags:
+        - Moderador
+      summary: Eliminar categoría de reporte
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Categoría eliminada
+        "400":
+          description: Solicitud incorrecta. Verifique los datos enviados.
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        '404':
+          description: categoría no existe.
+        '500':
+          description: Error interno del servidor
+  /moderador/informes:
+    get:
+      tags:
+        - Moderador
+      summary: Generar informe de reportes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: fechaInicio
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: fechaFin
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: categoria
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: latitud
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: longitud
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: radio
+          in: query
+          required: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Informe generado correctamente
+        '401':
+          description: No autorizado.
+        '403':
+          description: Acceso prohibido.
+        "400":
+          description: Fechas inválidas
+        '500':
+          description: Error interno del servidor
+components:
+  schemas:
+    Usuario:
+      type: object
+      properties:
+        nombre:
+          type: string
+        ciudad:
+          type: string
+        direccion:
+          type: string
+        telefono:
+          type: string
+        email:
+          type: string
+          format: email
+        contraseña:
+          type: string
+    EditarUsuario:
+      type: object
+      properties:
+        nombre:
+          type: string
+        ciudad:
+          type: string
+        direccion:
+          type: string
+        telefono:
+          type: string
+    ObtenerUsuario:
+      type: object
+      properties:
+        nombre:
+          type: string
+        ciudad:
+          type: string
+        direccion:
+          type: string
+        telefono:
+          type: string
+        email:
+          type: string
+          format: email
+    PasswordRequest:
+      type: object
+      properties:
+        actualPassword:
+          type: string
+        nuevoPassword:
+          type: string
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    UsuarioActivacion:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        cogigoActivacion:
+          type: string
+    Reporte:
+      type: object
+      properties:
+        idUsuario:
+          type: string
+        titulo:
+          type: string
+        categoria:
+          type: string
+        descripcion:
+          type: string
+        ubicacion:
+          $ref: '#/components/schemas/Ubicacion'
+        estadoActual:
+          type: string
+        imagen:
+          type: array
+          items:
+            type: string
+          example: ["url1", "url2", "url3"]
+    EditarReporte:
+      type: object
+      properties:
+        titulo:
+          type: string
+        categoria:
+          type: string
+        descripcion:
+          type: string
+        ubicacion:
+          $ref: '#/components/schemas/Ubicacion'
+        imagen:
+          type: array
+          items:
+            type: string
+          example: ["url1", "url2", "url3"]
+    ComentarioReporte:
+      type: object
+      properties:
+        idUsuario:
+          type: string
+        comentario:
+          type: string
+    EstadoReporte:
+      type: object
+      properties:
+        nuevoEstado:
+          type: string
+        idUsuario:
+          type: string
+        motivo:
+          type: string
+    Notificacion:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        asunto:
+          type: string
+        mensaje:
+          type: string
+    NotificacionUbicacion:
+      type: object
+      properties:
+        idReporte:
+          type: string
+        ubicacion:
+          $ref: '#/components/schemas/Ubicacion'
+        radio:
+          type: integer
+    PasswordOlvidado:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+    PasswordNuevo:
+      type: object
+      properties:
+        codigo:
+          type: string
+        email:
+          type: string
+          format: email
+        nuevoPassword:
+          type: string
+    Ubicacion:
+      type: object
+      properties:
+        latitud:
+          type: number
+        longitud:
+          type: number
+    Categoria:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+    ListCategoria:
+      type: array
+      items:
+        $ref: '#/components/schemas/Categoria'
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

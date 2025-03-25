@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>co.edu.uniquindio.proyecto.modelo.documentos.enums.Ciudad</OriginalElement>
+  <nodes>
+    <node x="649.5" y="645.5">co.edu.uniquindio.proyecto.modelo.documentos.Informe</node>
+    <node x="408.0" y="41.5">co.edu.uniquindio.proyecto.vo.HistorialReporte</node>
+    <node x="-141.0" y="55.5">co.edu.uniquindio.proyecto.modelo.documentos.enums.EstadoUsuario</node>
+    <node x="-9.5" y="-130.5">co.edu.uniquindio.proyecto.modelo.documentos.enums.Rol</node>
+    <node x="-115.5" y="603.5">co.edu.uniquindio.proyecto.modelo.documentos.Usuario</node>
+    <node x="87.0" y="69.5">co.edu.uniquindio.proyecto.vo.CodigoValidacion</node>
+    <node x="258.0" y="603.5">co.edu.uniquindio.proyecto.modelo.documentos.Reporte</node>
+    <node x="690.0" y="69.5">co.edu.uniquindio.proyecto.vo.Ubicacion</node>
+    <node x="531.0" y="291.5">co.edu.uniquindio.proyecto.modelo.documentos.Notificacion</node>
+    <node x="21.5" y="1067.5">co.edu.uniquindio.proyecto.modelo.documentos.Comentario</node>
+    <node x="417.5" y="-472.5">co.edu.uniquindio.proyecto.modelo.documentos.enums.EstadoReporte</node>
+    <node x="333.5" y="1109.5">co.edu.uniquindio.proyecto.modelo.documentos.Categoria</node>
+    <node x="235.0" y="-186.5">co.edu.uniquindio.proyecto.modelo.documentos.enums.Ciudad</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Usuario" target="co.edu.uniquindio.proyecto.vo.CodigoValidacion" relationship="TO_ONE">
+      <point x="0.0" y="-170.5" />
+      <point x="25.0" y="574.0" />
+      <point x="65.0" y="574.0" />
+      <point x="65.0" y="194.0" />
+      <point x="185.0" y="194.0" />
+      <point x="0.0" y="44.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Comentario" target="co.edu.uniquindio.proyecto.modelo.documentos.Usuario" relationship="TO_ONE">
+      <point x="-0.0" y="-86.5" />
+      <point x="120.0" y="170.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Usuario" target="co.edu.uniquindio.proyecto.modelo.documentos.enums.Ciudad" relationship="TO_ONE">
+      <point x="0.0" y="-170.5" />
+      <point x="25.0" y="574.0" />
+      <point x="65.0" y="574.0" />
+      <point x="65.0" y="194.0" />
+      <point x="305.0" y="194.0" />
+      <point x="0.0" y="100.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Reporte" target="co.edu.uniquindio.proyecto.vo.HistorialReporte" relationship="TO_MANY">
+      <point x="0.0" y="-170.5" />
+      <point x="385.0" y="274.0" />
+      <point x="625.0" y="274.0" />
+      <point x="625.0" y="14.0" />
+      <point x="505.0" y="14.0" />
+      <point x="0.0" y="-72.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Usuario" target="co.edu.uniquindio.proyecto.modelo.documentos.enums.Rol" relationship="TO_ONE">
+      <point x="0.0" y="-170.5" />
+      <point x="25.0" y="574.0" />
+      <point x="65.0" y="574.0" />
+      <point x="0.0" y="44.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Reporte" target="co.edu.uniquindio.proyecto.modelo.documentos.enums.EstadoReporte" relationship="TO_ONE">
+      <point x="0.0" y="-170.5" />
+      <point x="385.0" y="274.0" />
+      <point x="625.0" y="274.0" />
+      <point x="625.0" y="254.0" />
+      <point x="665.0" y="254.0" />
+      <point x="665.0" y="-6.0" />
+      <point x="505.0" y="-6.0" />
+      <point x="0.0" y="86.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.vo.HistorialReporte" target="co.edu.uniquindio.proyecto.modelo.documentos.enums.EstadoReporte" relationship="TO_ONE">
+      <point x="0.0" y="-72.5" />
+      <point x="0.0" y="86.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Usuario" target="co.edu.uniquindio.proyecto.modelo.documentos.enums.EstadoUsuario" relationship="TO_ONE">
+      <point x="0.0" y="-170.5" />
+      <point x="25.0" y="574.0" />
+      <point x="65.0" y="574.0" />
+      <point x="65.0" y="194.0" />
+      <point x="-55.0" y="194.0" />
+      <point x="0.0" y="58.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Reporte" target="co.edu.uniquindio.proyecto.vo.Ubicacion" relationship="TO_ONE">
+      <point x="0.0" y="-170.5" />
+      <point x="385.0" y="274.0" />
+      <point x="625.0" y="274.0" />
+      <point x="625.0" y="254.0" />
+      <point x="765.0" y="254.0" />
+      <point x="0.0" y="44.5" />
+    </edge>
+    <edge source="co.edu.uniquindio.proyecto.modelo.documentos.Comentario" target="co.edu.uniquindio.proyecto.modelo.documentos.Reporte" relationship="TO_ONE">
+      <point x="120.5" y="-86.5" />
+      <point x="-119.5" y="170.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="0.6707160027472527" showDependencies="true" x="350.0" y="759.484352" />
+  <SelectedNodes>
+    <node>co.edu.uniquindio.proyecto.modelo.documentos.Comentario</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Fields</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
