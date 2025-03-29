@@ -4,8 +4,8 @@ info:
   description: |-
     Proyecto final programacion avanzada Definicion de una API en Swagger.
     
-    _Integrantes: Jordy Diaz - Jenniffer Suarez - John Cifuentes_
-  version: 1.0.0
+    _Integrantes: Gonzaga Ospina
+  version: 1.1.0
 servers:
   - url: http://localhost:8080/api
 tags:

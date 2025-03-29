@@ -149,8 +149,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
     @Override
     public void eliminar(String id) throws Exception {
-
-
+        
         //Validamos el id
         if (!ObjectId.isValid(id)) {
             throw new Exception("No se encontró el usuario con el id "+id);
