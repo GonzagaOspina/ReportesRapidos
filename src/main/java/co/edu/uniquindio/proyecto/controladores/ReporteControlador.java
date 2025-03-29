@@ -28,13 +28,15 @@ public class ReporteControlador{
     }
 
     @GetMapping
-    public ResponseEntity<MensajeDTO<String>> obtenerReportes() throws Exception{
-        return ResponseEntity.ok(new MensajeDTO<>(false, "reportes"));
+    public ResponseEntity<MensajeDTO<List<ReporteDTO>>> obtenerReportes() throws Exception{
+        List<ReporteDTO> reportes=reporteServicio.obtenerReportes();
+        return ResponseEntity.ok(new MensajeDTO<>(false,reportes));
     }
 
     @GetMapping("/{idUsuario}")
-    public ResponseEntity<MensajeDTO<String>> obtenerReportesUsuario(@PathVariable String idUsuario) throws Exception {
-        return ResponseEntity.ok(new MensajeDTO<>(false, "reportes"));
+    public ResponseEntity<MensajeDTO<List<ReporteDTO>>> obtenerReportesUsuario(@PathVariable String idUsuario) throws Exception {
+        List<ReporteDTO> reportes=reporteServicio.obtenerReportesUsuario(idUsuario);
+        return ResponseEntity.ok(new MensajeDTO<>(false, reportes));
     }
 
     @GetMapping("/ubicacion")

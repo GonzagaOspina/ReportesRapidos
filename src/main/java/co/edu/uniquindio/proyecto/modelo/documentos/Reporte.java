@@ -21,7 +21,7 @@ public class Reporte {
     @Id
     private ObjectId id;
 
-    private ObjectId clienteId;
+    private ObjectId usuarioId;
 
     private String titulo;
     private ObjectId CategoriaId;

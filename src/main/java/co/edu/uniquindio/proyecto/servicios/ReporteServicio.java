@@ -15,7 +15,7 @@ public interface ReporteServicio {
 
     List<ReporteDTO> obtenerReportes() throws Exception;
 
-    List<ReporteDTO> obtenerReportesUsuario( String idUsuario) throws Exception ;
+    List<ReporteDTO> obtenerReportesUsuario(String idUsuario) throws Exception ;
 
     List<ReporteDTO> obtenerReportesCerca(Ubicacion ubicacion) throws Exception ;
 

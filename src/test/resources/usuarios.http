@@ -27,7 +27,7 @@ Content-Type: application/json
 
 {
   "id": "12",
-  "nombre": "Jordy",
+  "nombre": "GonzagaOspina",
   "ciudad": "Armenia",
   "telefono": "nuevo",
   "direccion": "Nueva dirección"

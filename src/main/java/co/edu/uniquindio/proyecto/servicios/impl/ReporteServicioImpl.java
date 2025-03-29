@@ -12,27 +12,28 @@ import co.edu.uniquindio.proyecto.repositorios.ReporteRepo;
 import co.edu.uniquindio.proyecto.servicios.ReporteServicio;
 import co.edu.uniquindio.proyecto.modelo.vo.Ubicacion;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ReporteServicioImpl implements ReporteServicio {
 
+    @Autowired
     private final ReporteRepo reporteRepo;
     private final ReporteMapper reporteMapper;
 
     @Override
     public void crearReporte(CrearReporteDTO crearReporteDTO) throws Exception {
 
-        // Validar si ya existe un reporte con la misma ubicación y descripción
         if (existeReporte(crearReporteDTO.latitud(), crearReporteDTO.longitud(), crearReporteDTO.descripcion())) {
             throw new DatoRepetidoException("Ya existe un reporte similar en la misma ubicación.");
         }
 
-        // Mapear DTO a documento y guardar en la base de datos
         Reporte reporte = reporteMapper.toDocument(crearReporteDTO);
         reporteRepo.save(reporte);
     }
@@ -43,14 +44,37 @@ public class ReporteServicioImpl implements ReporteServicio {
     }
 
     @Override
-    public List<ReporteDTO> obtenerReportes() throws Exception {
-        return List.of();
+    public List<ReporteDTO> obtenerReportes() {
+
+        // Obtenemos todos los reportes desde el repositorio
+        List<Reporte> reportes = reporteRepo.findAll();
+
+        // Convertimos la lista de Reporte a ReporteDTO
+        return reportes.stream()
+                .map(reporteMapper::toDTO)
+                .collect(Collectors.toList());
     }
+
 
     @Override
     public List<ReporteDTO> obtenerReportesUsuario(String idUsuario) throws Exception {
-        return List.of();
+
+            // Validamos el clienteId
+            if (!ObjectId.isValid(idUsuario)) {
+                throw new Exception("ID de cliente inválido: " + idUsuario);
+            }
+
+            ObjectId clienteObjectId = new ObjectId(idUsuario);
+
+            // Buscamos los reportes por clienteId
+            List<Reporte> reportes = reporteRepo.findByUsuarioId(clienteObjectId);
+
+            // Convertimos la lista de Reporte a ReporteDTO
+            return reportes.stream()
+                    .map(reporteMapper::toDTO)
+                    .collect(Collectors.toList());
     }
+
 
     @Override
     public List<ReporteDTO> obtenerReportesCerca(Ubicacion ubicacion) throws Exception {
