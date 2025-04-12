@@ -21,4 +21,12 @@ public interface ReporteMapper {
     default String map(ObjectId value) {
         return value != null ? value.toString() : null;
     }
+
+
+
+
+
+
+
+
 }

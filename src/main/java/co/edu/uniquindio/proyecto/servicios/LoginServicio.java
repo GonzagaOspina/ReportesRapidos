@@ -1,6 +1,7 @@
 package co.edu.uniquindio.proyecto.servicios;
 
 import co.edu.uniquindio.proyecto.dto.MensajeDTO;
+import co.edu.uniquindio.proyecto.dto.TokenDTO;
 import co.edu.uniquindio.proyecto.dto.login.LoginRequestDTO;
 import co.edu.uniquindio.proyecto.dto.login.PasswordNuevoDTO;
 import co.edu.uniquindio.proyecto.dto.login.PasswordOlvidadoDTO;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 public interface LoginServicio {
 
-    void login( LoginRequestDTO loginRequest) throws Exception ;
+    TokenDTO login(LoginRequestDTO loginRequest) throws Exception ;
 
     void  recuperarPassword(PasswordOlvidadoDTO passwordOlvidadoDTO) throws Exception ;
 

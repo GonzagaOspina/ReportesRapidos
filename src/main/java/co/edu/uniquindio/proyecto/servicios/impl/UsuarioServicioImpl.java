@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,7 +32,7 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
     @Autowired
     private final UsuarioRepo usuarioRepo;
-
+    private final BCryptPasswordEncoder passwordEncoder= new BCryptPasswordEncoder();
     private final UsuarioMapper usuarioMapper;
 
     @Override
@@ -41,6 +42,11 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
 
         Usuario usuario = usuarioMapper.toDocument(crearUsuarioDTO);
+
+        // Se codifica la contraseña
+        usuario.setPassword(passwordEncoder.encode(crearUsuarioDTO.password()));
+
+
         usuarioRepo.save(usuario);
         
         CodigoValidacion codigo= new CodigoValidacion(

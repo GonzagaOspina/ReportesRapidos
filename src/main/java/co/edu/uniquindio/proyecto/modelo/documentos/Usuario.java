@@ -31,18 +31,5 @@ public class Usuario {
     private CodigoValidacion codigoValidacion;
     private LocalDateTime fechaRegistro;
 
-    @Builder
-    public Usuario(String nombre, String telefono, Ciudad ciudad, Rol rol, EstadoUsuario estado, String direccion, String email, String password, CodigoValidacion codigoValidacion, LocalDateTime fechaRegistro) {
-        this.nombre = nombre;
-        this.telefono = telefono;
-        this.ciudad = ciudad;
-        this.rol = rol;
-        this.estado = estado;
-        this.direccion = direccion;
-        this.email = email;
-        this.password = password;
-        this.codigoValidacion = codigoValidacion;
-        this.fechaRegistro = fechaRegistro;
-    }
 
 }
