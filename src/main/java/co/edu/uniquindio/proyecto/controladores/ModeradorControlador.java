@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/moderador")
+@RequestMapping("/api/moderador")
 public class ModeradorControlador {
 
 
