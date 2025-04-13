@@ -1,14 +1,11 @@
 package co.edu.uniquindio.proyecto.servicios.impl;
 
 
-import co.edu.uniquindio.proyecto.dto.usuarios.CrearUsuarioDTO;
-import co.edu.uniquindio.proyecto.dto.usuarios.EditarUsuarioDTO;
-import co.edu.uniquindio.proyecto.dto.usuarios.UsuarioActivacionDTO;
-import co.edu.uniquindio.proyecto.dto.usuarios.UsuarioDTO;
+import co.edu.uniquindio.proyecto.dto.usuarios.*;
 import co.edu.uniquindio.proyecto.excepciones.EmailRepetidoException;
+import co.edu.uniquindio.proyecto.excepciones.UsuarioNoEncotradoException;
 import co.edu.uniquindio.proyecto.mapper.UsuarioMapper;
 import co.edu.uniquindio.proyecto.modelo.enums.EstadoUsuario;
-import co.edu.uniquindio.proyecto.modelo.enums.Rol;
 import co.edu.uniquindio.proyecto.modelo.documentos.Usuario;
 import co.edu.uniquindio.proyecto.repositorios.UsuarioRepo;
 import co.edu.uniquindio.proyecto.servicios.UsuarioServicio;
@@ -17,10 +14,10 @@ import co.edu.uniquindio.proyecto.modelo.vo.CodigoValidacion;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 
 import java.time.LocalDateTime;
@@ -116,19 +113,19 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
     @Override
     public void editar(EditarUsuarioDTO editarUsuarioDTO) throws Exception {
-
-        if (!ObjectId.isValid(editarUsuarioDTO.id())) {
-            throw new Exception("No se encontró el usuario con el id "+editarUsuarioDTO.id());
+        String id = obtenerIdSesion();
+        if (!ObjectId.isValid(id)) {
+            throw new Exception("No se encontró el usuario: "+id);
         }
 
 
-        ObjectId objectId = new ObjectId(editarUsuarioDTO.id());
+        ObjectId objectId = new ObjectId(id);
         Optional<Usuario> usuarioOptional = usuarioRepo.findById(objectId);
 
 
         //Si no se encontró el usuario, lanzamos una excepción
         if(usuarioOptional.isEmpty()){
-            throw new Exception("No se encontró el usuario con el id "+editarUsuarioDTO.id());
+            throw new Exception("No se encontró el usuario: "+id);
         }
 
 
@@ -141,15 +138,44 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
 
     @Override
-    public void cambiarPassword(String id) throws Exception {
+    public void cambiarPassword(CambiarPasswordDTO cambiarPasswordDTO) throws Exception {
+    String id = obtenerIdSesion();
 
+    //Validamos id
+        if(!ObjectId.isValid(id)){
+            throw new UsuarioNoEncotradoException("No se encontro el usuario: "+ id);
+        }
+
+        ObjectId objectId = new ObjectId(id);
+        Optional<Usuario> usuarioOptional = usuarioRepo.findById(objectId);
+
+        //Si no hay usuario, se lanza
+        if(usuarioOptional.isEmpty()){
+            throw new Exception("No se encontro el usuario: "+ id);
+        }
+
+        Usuario usuario = usuarioOptional.get();
+
+        //Validacion contrasena
+        if(!passwordEncoder.matches(cambiarPasswordDTO.actualPassword(), usuario.getPassword())){
+            throw new Exception("No se encontro usuario: "+ id);
+        }
+
+        //Encriptacion nueva contrasena
+        String nuevaPasswordEncript = passwordEncoder.encode(cambiarPasswordDTO.nuevoPassword());
+        //Actualziar usuario
+        usuario.setPassword(nuevaPasswordEncript);
+
+        usuarioRepo.save(usuario);
     }
 
     @Override
-    public void eliminar(String id) throws Exception {
-        
+    public void eliminar() throws Exception {
+
+        String id = obtenerIdSesion();
+
         if (!ObjectId.isValid(id)) {
-            throw new Exception("No se encontró el usuario con el id "+id);
+            throw new UsuarioNoEncotradoException("No se encontró el usuario: "+id);
         }
 
 
@@ -158,33 +184,36 @@ public class UsuarioServicioImpl implements UsuarioServicio {
 
 
         if(usuarioOptional.isEmpty()){
-            throw new Exception("No se encontró el usuario con el id "+id);
+            throw new Exception("No se encontró el usuario: "+ id);
         }
 
 
         Usuario usuario = usuarioOptional.get();
-        usuario.setEstado(EstadoUsuario.ELIMINADO);
 
+        //Si es encontrasdo, se elimina
+        if(usuario.getEstado().equals(EstadoUsuario.INACTIVO)){
+            throw new Exception("El usuario ya esta eliminado");
+        }
+
+        usuario.setEstado(EstadoUsuario.ELIMINADO);
 
         usuarioRepo.save(usuario);
     }
 
-
-
-
     @Override
-    public UsuarioDTO obtener(String id) throws Exception {
+    public UsuarioDTO obtener() throws Exception {
 
+        String id = obtenerIdSesion();
         //Validamos el id
         if (!ObjectId.isValid(id)) {
-            throw new Exception("No se encontró el usuario con el id "+id);
+            throw new Exception("No se encontró el usuario: "+id);
         }
 
-        //Buscamos el usuario que se quiere obtener
+        //Buscamos el usuario
         ObjectId objectId = new ObjectId(id);
         Optional<Usuario> usuarioOptional = usuarioRepo.findById(objectId);
 
-        //Si no se encontró el usuario, lanzamos una excepción
+        //Si no se encontró, lanzamos una excepción
         if(usuarioOptional.isEmpty()){
             throw new Exception("No se encontró el usuario con el id "+id);
         }
@@ -192,5 +221,14 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         //Retornamos el usuario encontrado convertido a DTO
         return usuarioMapper.toDTO(usuarioOptional.get());
 
+    }
+    public String obtenerIdSesion(){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return user.getUsername();
+    }
+    public String obtenerRol() throws Exception{
+        String id = obtenerIdSesion();
+        Usuario usuario = usuarioRepo.findById(new ObjectId(id)).orElseThrow(() -> new UsuarioNoEncotradoException("No se encontro el usuario: "+id));
+        return usuario.getRol().toString();
     }
 }
