@@ -5,6 +5,7 @@ import co.edu.uniquindio.proyecto.dto.TokenDTO;
 import co.edu.uniquindio.proyecto.dto.login.LoginRequestDTO;
 import co.edu.uniquindio.proyecto.dto.login.PasswordNuevoDTO;
 import co.edu.uniquindio.proyecto.dto.login.PasswordOlvidadoDTO;
+import co.edu.uniquindio.proyecto.dto.usuarios.UsuarioNuevoCodDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +15,7 @@ public interface LoginServicio {
 
     TokenDTO login(LoginRequestDTO loginRequest) throws Exception ;
 
-    void  recuperarPassword(PasswordOlvidadoDTO passwordOlvidadoDTO) throws Exception ;
+    void  recuperarPassword(UsuarioNuevoCodDTO usuarioNuevoCodDTO) throws Exception ;
 
     void  actualizarPassword(PasswordNuevoDTO passwordNuevoDTO) throws Exception;
 }
