@@ -1,22 +1,33 @@
 package co.edu.uniquindio.proyecto.servicios.impl;
 
 import co.edu.uniquindio.proyecto.dto.comentarios.ComentarioDTO;
+import co.edu.uniquindio.proyecto.dto.notificaciones.NotificacionDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.CrearReporteDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.EditarReporteDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.EstadoReporteDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.ReporteDTO;
+import co.edu.uniquindio.proyecto.excepciones.CategoriaNoEncontrada;
 import co.edu.uniquindio.proyecto.excepciones.DatoRepetidoException;
+import co.edu.uniquindio.proyecto.mapper.ComentarioMapper;
 import co.edu.uniquindio.proyecto.mapper.ReporteMapper;
+import co.edu.uniquindio.proyecto.modelo.documentos.Categoria;
 import co.edu.uniquindio.proyecto.modelo.documentos.Reporte;
+import co.edu.uniquindio.proyecto.modelo.documentos.Usuario;
+import co.edu.uniquindio.proyecto.repositorios.CategoriaRepo;
 import co.edu.uniquindio.proyecto.repositorios.ReporteRepo;
+import co.edu.uniquindio.proyecto.repositorios.UsuarioRepo;
+import co.edu.uniquindio.proyecto.servicios.EmailServicio;
 import co.edu.uniquindio.proyecto.servicios.ReporteServicio;
 import co.edu.uniquindio.proyecto.modelo.vo.Ubicacion;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.AccessException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,16 +37,45 @@ public class ReporteServicioImpl implements ReporteServicio {
     @Autowired
     private final ReporteRepo reporteRepo;
     private final ReporteMapper reporteMapper;
+    private final UsuarioRepo usuarioRepo;
+    private final UsuarioServicioImpl usuarioServicio;
+    private final CategoriaRepo categoriaRepo;
+    private final ComentarioMapper comentarioMapper;
+    private final EmailServicio emailServicio;
 
     @Override
     public void crearReporte(CrearReporteDTO crearReporteDTO) throws Exception {
+        String id = usuarioServicio.obtenerIdSesion();
 
-        if (existeReporte(crearReporteDTO.latitud(), crearReporteDTO.longitud(), crearReporteDTO.descripcion())) {
-            throw new DatoRepetidoException("Ya existe un reporte similar en la misma ubicación.");
+        // Mapear DTO a documento y guardar en la base de datos
+        Reporte reporte = reporteMapper.toDocument(crearReporteDTO);
+        reporte.setUsuarioId(new ObjectId(id));
+        // Buscar al usuario por su ID
+        Usuario usuario = usuarioRepo.findById(new ObjectId(id)).orElseThrow(() -> new Exception("Usuario no encontrado"));
+        reporte.setUsuarioId(usuario.getId());
+
+        // Validar si el categoriaId es válido antes de intentar convertirlo
+        if (crearReporteDTO.categoria() == null || !ObjectId.isValid(crearReporteDTO.categoria())) {
+            throw new CategoriaNoEncontrada("Categoría no encontrada");
         }
 
-        Reporte reporte = reporteMapper.toDocument(crearReporteDTO);
+        // Validar que la categoría existe antes de asignarla al reporte
+        ObjectId categoriaId = new ObjectId(crearReporteDTO.categoria());
+        Categoria categoria = categoriaRepo.findById(categoriaId).orElseThrow(() -> new CategoriaNoEncontrada("Categoría no encontrada"));
+
+        // Asignar la categoría al reporte
+        reporte.setCategoriaId(categoria.getId());
+
         reporteRepo.save(reporte);
+//        NotificacionDTO notificacionDTO = new NotificacionDTO(
+  //              "Nuevo Reporte",
+    //            "Se acaba de crear un nuevo reporte: " + reporte.getTitulo(),
+      //          "reports"
+        //);
+
+
+        //webSocketNotificationService.notificarClientes(notificacionDTO);
+
     }
 
     private boolean existeReporte(double latitud, double longitud, String descripcion) {
@@ -45,40 +85,21 @@ public class ReporteServicioImpl implements ReporteServicio {
 
     @Override
     public List<ReporteDTO> obtenerReportes() {
-
-        // Obtenemos todos los reportes desde el repositorio
-        List<Reporte> reportes = reporteRepo.findAll();
-
-        // Convertimos la lista de Reporte a ReporteDTO
-        return reportes.stream()
-                .map(reporteMapper::toDTO)
-                .collect(Collectors.toList());
+        return reporteRepo.obtenerReportes();
     }
 
 
     @Override
-    public List<ReporteDTO> obtenerReportesUsuario(String idUsuario) throws Exception {
+    public List<ReporteDTO> obtenerReportesUsuario() throws Exception {
 
-            // Validamos el clienteId
-            if (!ObjectId.isValid(idUsuario)) {
-                throw new Exception("ID de cliente inválido: " + idUsuario);
-            }
+        String usuarioId = usuarioServicio.obtenerIdSesion();
+        return reporteRepo.obtenerReportesUsuario(new ObjectId(usuarioId));
 
-            ObjectId clienteObjectId = new ObjectId(idUsuario);
-
-            // Buscamos los reportes por clienteId
-            List<Reporte> reportes = reporteRepo.findByUsuarioId(clienteObjectId);
-
-            // Convertimos la lista de Reporte a ReporteDTO
-            return reportes.stream()
-                    .map(reporteMapper::toDTO)
-                    .collect(Collectors.toList());
     }
 
-
     @Override
-    public List<ReporteDTO> obtenerReportesCerca(Ubicacion ubicacion) throws Exception {
-        return List.of();
+    public List<ReporteDTO> obtenerReportesCerca(double latitud, double longitud) {
+        return reporteRepo.obtenerReportesCerca(latitud, longitud);
     }
 
     @Override
@@ -87,18 +108,71 @@ public class ReporteServicioImpl implements ReporteServicio {
     }
 
     @Override
-    public void editarReporte(String id, EditarReporteDTO reporteDTO) throws Exception {
+    public void editarReporte(String id, EditarReporteDTO editarReporteDTO) throws Exception {
+        if (!ObjectId.isValid(id)) {
+            throw new Exception("No se encontró el reporte con el id " + id);
+        }
 
+        Optional<Reporte> reporteOptional = reporteRepo.findById(id);
+        if (reporteOptional.isEmpty()) {
+            throw new Exception("No se encontró el reporte " + id);
+        }
+
+        Reporte reporte = reporteOptional.get();
+
+        // Obtener ID del usuario autenticado
+        String usernameAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+        ObjectId usuarioAutenticadoId = new ObjectId(usernameAutenticado);
+
+        // Verificar que el reporte le pertenezca
+        if (!reporte.getUsuarioId().equals(usuarioAutenticadoId)) {
+            throw new Exception("No tienes permiso para editar este reporte.");
+        }
+
+        // Mapear y guardar
+        reporteMapper.toDocument(editarReporteDTO, reporte);
+        reporteRepo.save(reporte);
     }
 
     @Override
     public void eliminarReporte(String id) throws Exception {
 
+        // Validamos el id del reporte
+        if (!ObjectId.isValid(id)) {
+            throw new Exception("No se encontró el reporte" + id);
+        }
+
+        Optional<Reporte> reporteOptional = reporteRepo.findById(id);
+
+        if (reporteOptional.isEmpty()) {
+            throw new Exception("No se encontró el reporte " + id);
+        }
+
+        // Obtenemos el reporte que se quiere eliminar
+        Reporte reporte = reporteOptional.get();
+
+        // Obtenemos el usuario autenticado
+        String usernameAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+        ObjectId usuarioAutenticadoId = new ObjectId(usernameAutenticado);
+
+        // Verificamos si el reporte pertenece al usuario autenticado
+        if (!reporte.getUsuarioId().equals(usuarioAutenticadoId)) {
+            throw new AccessException("No tienes permiso para eliminar este reporte.");
+        }
+
+        // Eliminamos el reporte
+        reporteRepo.deleteById(id);
     }
 
     @Override
     public ReporteDTO obtenerReporte(String id) throws Exception {
-        return null;
+
+        // Validamos que el id sea válido
+        if (!ObjectId.isValid(id)) {
+            throw new Exception("No se encontró el reporte con el id " + id);
+        }
+
+        return reporteRepo.obtenerReporteId(new ObjectId(id));
     }
 
     @Override
