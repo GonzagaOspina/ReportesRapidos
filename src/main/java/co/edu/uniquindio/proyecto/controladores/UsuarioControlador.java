@@ -27,8 +27,8 @@ public class UsuarioControlador {
     }
 
     @PostMapping("/notificacion")
-    public ResponseEntity<MensajeDTO<String>> enviarCodigoActivacion(@Valid @RequestBody UsuarioActivacionDTO usuarioActivacionDTO) throws Exception {
-        usuarioServicio.enviarCodigoActivacion(usuarioActivacionDTO);
+    public ResponseEntity<MensajeDTO<String>> enviarCodigoActivacion(@Valid @RequestBody UsuarioNuevoCodDTO usuarioNuevoCodDTO) throws Exception {
+        usuarioServicio.enviarCodigoActivacion(usuarioNuevoCodDTO);
         return ResponseEntity.ok(new MensajeDTO<>(false, "Código enviado exitosamente"));
     }
 

@@ -9,12 +9,12 @@ public interface UsuarioServicio {
 
     void crear( CrearUsuarioDTO cuenta) throws Exception;
 
-    void enviarCodigoActivacion( UsuarioActivacionDTO usuarioActivacionDTO) throws Exception ;
+    void enviarCodigoActivacion( UsuarioNuevoCodDTO usuarioActivacionDTO) throws Exception ;
 
    void activarCuenta( UsuarioActivacionDTO usuarioActivacionDTO) throws Exception;
 
 
-    void editar( EditarUsuarioDTO cuenta) throws Exception;
+    void  editar( EditarUsuarioDTO cuenta) throws Exception;
 
     void cambiarPassword(CambiarPasswordDTO cambiarPasswordDTO) throws Exception ;
 

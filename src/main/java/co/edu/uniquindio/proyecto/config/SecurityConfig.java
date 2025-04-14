@@ -42,6 +42,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> req
                         .requestMatchers("/api/auth/**","/swagger-ui/**","/v3/api-docs/**","/api/usuarios","/api/login/**","/api/usuarios/activar").permitAll()
+                        // Permitir SOLO GET en /api/moderador/** para CLIENTE y MODERADOR
+                        .requestMatchers(HttpMethod.GET, "/api/moderador/**").hasAnyAuthority("ROLE_CLIENTE", "ROLE_MODERADOR")
+                        .requestMatchers("/api/moderador/**").hasAuthority("ROLE_MODERADOR")  // Solo moderadores
+                        .requestMatchers("/api/usuarios/**","/api/us","/api/reportes/**").hasAnyAuthority("ROLE_CLIENTE", "ROLE_MODERADOR") // Clientes y moderadores
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint( new AutenticacionEntryPoint() ))
