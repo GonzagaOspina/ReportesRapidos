@@ -7,6 +7,8 @@ import co.edu.uniquindio.proyecto.dto.reportes.EditarReporteDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.EstadoReporteDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.ReporteDTO;
 import co.edu.uniquindio.proyecto.servicios.ReporteServicio;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,26 +18,30 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/reportes")
+@SecurityRequirement(name = "bearerAuth")
+@RequestMapping("/api/reportes")
 public class ReporteControlador{
 
     private final ReporteServicio reporteServicio; // Inyectar servicio
 
     @PostMapping
+    @Operation(summary = "crear reporte")
     public ResponseEntity<MensajeDTO<String>> crearReporte(@Valid @RequestBody CrearReporteDTO crearReporteDTO) throws Exception {
         reporteServicio.crearReporte(crearReporteDTO);
         return ResponseEntity.status(201).body(new MensajeDTO<>(false, "Reporte creado exitosamente"));
     }
 
     @GetMapping
+    @Operation(summary = "mostrar todos los Reportes")
     public ResponseEntity<MensajeDTO<List<ReporteDTO>>> obtenerReportes() throws Exception{
         List<ReporteDTO> reportes=reporteServicio.obtenerReportes();
         return ResponseEntity.ok(new MensajeDTO<>(false,reportes));
     }
 
-    @GetMapping("/{idUsuario}")
-    public ResponseEntity<MensajeDTO<List<ReporteDTO>>> obtenerReportesUsuario(@PathVariable String idUsuario) throws Exception {
-        List<ReporteDTO> reportes=reporteServicio.obtenerReportesUsuario(idUsuario);
+    @GetMapping("/usuario")
+    @Operation(summary = "mostrar reportes usario dado")
+    public ResponseEntity<MensajeDTO<List<ReporteDTO>>> obtenerReportesUsuario() throws Exception {
+        List<ReporteDTO> reportes=reporteServicio.obtenerReportesUsuario();
         return ResponseEntity.ok(new MensajeDTO<>(false, reportes));
     }
 
