@@ -186,12 +186,12 @@ public class UsuarioServicioImpl implements UsuarioServicio {
         Usuario usuario = usuarioOptional.get();
 
         //Validacion contrasena
-        if(!passwordEncoder.matches(cambiarPasswordDTO.actualPassword(), usuario.getPassword())){
+        if(!passwordEncoder.matches(cambiarPasswordDTO.actual(), usuario.getPassword())){
             throw new Exception("No se encontro usuario: "+ id);
         }
 
         //Encriptacion nueva contrasena
-        String nuevaPasswordEncript = passwordEncoder.encode(cambiarPasswordDTO.nuevoPassword());
+        String nuevaPasswordEncript = passwordEncoder.encode(cambiarPasswordDTO.nueva());
         //Actualziar usuario
         usuario.setPassword(nuevaPasswordEncript);
 

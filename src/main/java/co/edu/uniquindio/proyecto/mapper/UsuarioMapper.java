@@ -4,10 +4,12 @@ import co.edu.uniquindio.proyecto.dto.usuarios.CrearUsuarioDTO;
 import co.edu.uniquindio.proyecto.dto.usuarios.EditarUsuarioDTO;
 import co.edu.uniquindio.proyecto.dto.usuarios.UsuarioDTO;
 import co.edu.uniquindio.proyecto.modelo.documentos.Usuario;
+import co.edu.uniquindio.proyecto.modelo.enums.Ciudad;
 import org.bson.types.ObjectId;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 
 
 @Mapper(componentModel = "spring")
@@ -21,7 +23,10 @@ public interface UsuarioMapper {
 
 
     UsuarioDTO toDTO(Usuario usuario);
-
+    @Named("ciudadToString")
+    default String ciudadToString(Ciudad ciudad) {
+        return ciudad != null ? ciudad.name() : null;
+    }
 
     // Metodo para mapear de ObjectId a String
     default String map(ObjectId value) {
@@ -33,6 +38,7 @@ public interface UsuarioMapper {
     @Mapping(target = "rol", ignore = true)
     @Mapping(target = "fechaRegistro", ignore = true)
     @Mapping(target = "codigoValidacion", ignore = true)
+    //@Mapping(target = "ciudad", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "password", ignore = true)
     void toDocument(EditarUsuarioDTO editarUsuarioDTO, @MappingTarget Usuario usuario);

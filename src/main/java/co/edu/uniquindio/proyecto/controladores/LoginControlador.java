@@ -14,9 +14,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/login")
+@RequestMapping("/login")
 public class LoginControlador {
 
     private final JWTUtils jwtUtils;
@@ -24,10 +27,13 @@ public class LoginControlador {
 
     @PostMapping
     @Operation(summary = "login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginRequestDTO loginRequest) throws Exception {
-        TokenDTO tokenDTO=loginServicio.login(loginRequest);
-        String token=tokenDTO.toString();
-        return ResponseEntity.ok(token);
+    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequestDTO loginRequest) throws Exception {
+        TokenDTO tokenDTO = loginServicio.login(loginRequest);
+
+        Map<String, String> body = new HashMap<>();
+        body.put("token", tokenDTO.token());
+
+        return ResponseEntity.ok(body);
     }
 
 

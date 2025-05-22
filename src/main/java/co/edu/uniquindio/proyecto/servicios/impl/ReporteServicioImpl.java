@@ -67,11 +67,11 @@ public class ReporteServicioImpl implements ReporteServicio {
         reporte.setCategoriaId(categoria.getId());
 
         reporteRepo.save(reporte);
-//        NotificacionDTO notificacionDTO = new NotificacionDTO(
-  //              "Nuevo Reporte",
-    //            "Se acaba de crear un nuevo reporte: " + reporte.getTitulo(),
-      //          "reports"
-        //);
+        NotificacionDTO notificacionDTO = new NotificacionDTO(
+                "Nuevo Reporte",
+                "Se acaba de crear un nuevo reporte: " + reporte.getTitulo(),
+                "reports"
+        );
 
 
         //webSocketNotificationService.notificarClientes(notificacionDTO);

@@ -19,12 +19,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/reportes")
+@RequestMapping("/reportes")
 public class ReporteControlador{
 
     private final ReporteServicio reporteServicio; // Inyectar servicio
 
-    @PostMapping
+    @PostMapping("/crearReporte")
     @Operation(summary = "crear reporte")
     public ResponseEntity<MensajeDTO<String>> crearReporte(@Valid @RequestBody CrearReporteDTO crearReporteDTO) throws Exception {
         reporteServicio.crearReporte(crearReporteDTO);

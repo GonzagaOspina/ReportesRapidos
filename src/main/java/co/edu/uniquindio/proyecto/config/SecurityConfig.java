@@ -41,15 +41,18 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> req
-                        .requestMatchers("/api/auth/**","/swagger-ui/**","/v3/api-docs/**","/api/usuarios","/api/login/**","/api/usuarios/activar").permitAll()
-                        // Permitir SOLO GET en /api/moderador/** para CLIENTE y MODERADOR
-                        .requestMatchers(HttpMethod.GET, "/api/moderador/**").hasAnyAuthority("ROLE_CLIENTE", "ROLE_MODERADOR")
-                        .requestMatchers("/api/moderador/**").hasAuthority("ROLE_MODERADOR")  // Solo moderadores
-                        .requestMatchers("/api/usuarios/**","/api/us","/api/reportes/**").hasAnyAuthority("ROLE_CLIENTE", "ROLE_MODERADOR") // Clientes y moderadores
+                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/login/**", "/usuarios/activar").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/usuarios", "/usuarios/registro","/usuarios/activar").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/usuarios/registro").hasAuthority("ROLE_CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/moderador/**").hasAnyAuthority( "ROLE_MODERADOR")
+                        .requestMatchers(HttpMethod.GET, "/usuarios/perfil").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/reportes/crearReporte").hasAuthority("ROLE_CLIENTE")
+                        .requestMatchers("/reportes/**").hasAnyAuthority("ROLE_CLIENTE", "ROLE_MODERADOR")
                         .anyRequest().authenticated()
                 )
+
                 .exceptionHandling(ex -> ex.authenticationEntryPoint( new AutenticacionEntryPoint() ))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).headers(headers -> headers.xssProtection(xss -> xss.disable()));
 
 
         return http.build();
@@ -60,7 +63,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         // Configura las políticas de CORS para permitir solicitudes desde el frontend
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

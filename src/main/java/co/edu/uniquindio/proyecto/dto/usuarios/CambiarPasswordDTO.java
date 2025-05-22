@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.Length;
 
 public record CambiarPasswordDTO(
-        @NotBlank String actualPassword,
-        @NotBlank @Length(min = 7, max = 20) String nuevoPassword
+        @NotBlank String actual,
+        @NotBlank @Length(min = 7, max = 20) String nueva
 ) {
 }
