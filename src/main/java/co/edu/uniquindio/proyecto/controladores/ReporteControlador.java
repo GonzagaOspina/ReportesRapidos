@@ -2,18 +2,19 @@ package co.edu.uniquindio.proyecto.controladores;
 
 import co.edu.uniquindio.proyecto.dto.MensajeDTO;
 import co.edu.uniquindio.proyecto.dto.comentarios.ComentarioDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.CrearReporteDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.EditarReporteDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.EstadoReporteDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.ReporteDTO;
+import co.edu.uniquindio.proyecto.dto.reportes.*;
+import co.edu.uniquindio.proyecto.seguridad.JWTUtils;
 import co.edu.uniquindio.proyecto.servicios.ReporteServicio;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -23,6 +24,9 @@ import java.util.List;
 public class ReporteControlador{
 
     private final ReporteServicio reporteServicio; // Inyectar servicio
+    @Autowired
+    private JWTUtils jwtUtils;
+
 
     @PostMapping("/crearReporte")
     @Operation(summary = "crear reporte")
@@ -92,8 +96,15 @@ public class ReporteControlador{
     @PostMapping("/{id}/estado")
     public ResponseEntity<MensajeDTO<String>> cambiarEstado(
             @PathVariable String id,
-            @Valid @RequestBody EstadoReporteDTO estadoDTO) throws Exception {
-        return ResponseEntity.ok(new MensajeDTO<>(false, "Estado del reporte actualizado"));
+            @RequestBody EstadoSinUsuarioDTO dto,
+            HttpServletRequest request
+    ) throws Exception {
+        String token = request.getHeader("Authorization");
+        String idModerador = jwtUtils.obtenerIdUsuarioDesdeToken(token);
+
+        reporteServicio.cambiarEstado(id, dto.nuevoEstado(), dto.motivo(), idModerador);
+        return ResponseEntity.ok(new MensajeDTO<>(false, "✅ Estado actualizado correctamente"));
     }
+
 
 }

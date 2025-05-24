@@ -22,77 +22,60 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class JWTFilter extends OncePerRequestFilter{
-
+public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtils jwtUtil;
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        System.out.println("🛡️ Entrando a JWTFilter");
 
-        //Obtener el token del header de la solicitud
         String token = getToken(request);
+        System.out.println("📦 Token recibido: " + token);
 
-
-        //Si no hay token, continuar con la cadena de filtros
         if (token == null) {
             chain.doFilter(request, response);
             return;
         }
 
-
         try {
-
-
-            //Validar el token y obtener el payload
             Jws<Claims> payload = jwtUtil.parseJwt(token);
-            String username = payload.getPayload().getSubject();
-            String role = payload.getPayload().get("rol", String.class);
+            String username = payload.getBody().getSubject();
+            String role = payload.getBody().get("rol", String.class);
+            String prefixedRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
 
+            System.out.println("🎯 Rol detectado: " + prefixedRole);
 
-            //Si el usuario no está autenticado, crear un nuevo objeto de autenticación
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-
-                //Crear un objeto UserDetails con el nombre de usuario y el rol
                 UserDetails userDetails = new User(
                         username,
                         "",
-                        List.of(new SimpleGrantedAuthority(role))
+                        List.of(new SimpleGrantedAuthority(prefixedRole))
                 );
 
-
-                //Crear un objeto de autenticación y establecerlo en el contexto de seguridad
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
                         userDetails.getAuthorities()
                 );
 
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                System.out.println("✅ Contexto de seguridad configurado");
             }
 
-
-        }catch (Exception e){
-            //Si el token no es válido, enviar un error 401
+        } catch (Exception e) {
+            System.out.println("❌ Error de autenticación: " + e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
             return;
         }
 
-
-        //Continuar con la cadena de filtros
         chain.doFilter(request, response);
-
-
     }
+
     private String getToken(HttpServletRequest req) {
         String header = req.getHeader("Authorization");
         return header != null && header.startsWith("Bearer ") ? header.replace("Bearer ", "") : null;
     }
-
-
 }

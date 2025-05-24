@@ -33,6 +33,6 @@ public interface ReporteServicio {
 
    void marcarImportante( String id) throws Exception ;
 
-    void cambiarEstado(String id, EstadoReporteDTO estadoDTO) throws Exception ;
+    void cambiarEstado(String idReporte, String nuevoEstado, String motivo, String idModerador) throws Exception;
 
 }
