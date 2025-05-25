@@ -42,7 +42,7 @@ public class ReporteControlador{
         return ResponseEntity.ok(new MensajeDTO<>(false,reportes));
     }
 
-    @GetMapping("/usuario")
+    @GetMapping("/mis-reportes")
     @Operation(summary = "mostrar reportes usario dado")
     public ResponseEntity<MensajeDTO<List<ReporteDTO>>> obtenerReportesUsuario() throws Exception {
         List<ReporteDTO> reportes=reporteServicio.obtenerReportesUsuario();
@@ -60,11 +60,16 @@ public class ReporteControlador{
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "editar reportes dado")
     public ResponseEntity<MensajeDTO<String>> editarReporte(
             @PathVariable String id,
             @Valid @RequestBody EditarReporteDTO reporteDTO) throws Exception {
+
+        reporteServicio.editarReporte(id, reporteDTO);
+
         return ResponseEntity.ok(new MensajeDTO<>(false, "Reporte actualizado"));
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<MensajeDTO<String>> eliminarReporte(@PathVariable String id) throws Exception {
@@ -72,9 +77,12 @@ public class ReporteControlador{
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MensajeDTO<String>> obtenerReporte(@PathVariable String id) throws Exception {
-        return ResponseEntity.ok(new MensajeDTO<>(false, "reporte"));
+    @Operation(summary = "Obtener un reporte por su ID")
+    public ResponseEntity<MensajeDTO<ReporteDTO>> obtenerReporte(@PathVariable String id) throws Exception {
+        ReporteDTO dto = reporteServicio.obtenerReporteId(id);  // ← Este método debe devolver el DTO con toda la info
+        return ResponseEntity.ok(new MensajeDTO<>(false, dto)); // ← Esto sí es lo que espera el frontend
     }
+
 
     @PostMapping("/{id}/comentario")
     public ResponseEntity<MensajeDTO<String>> agregarComentario(
@@ -89,9 +97,12 @@ public class ReporteControlador{
     }
 
     @PutMapping("/{id}/importante")
+    @Operation(summary = "Marcar un reporte como importante")
     public ResponseEntity<MensajeDTO<String>> marcarImportante(@PathVariable String id) throws Exception {
+        reporteServicio.marcarImportante(id);
         return ResponseEntity.ok(new MensajeDTO<>(false, "Reporte marcado como importante"));
     }
+
 
     @PostMapping("/{id}/estado")
     public ResponseEntity<MensajeDTO<String>> cambiarEstado(

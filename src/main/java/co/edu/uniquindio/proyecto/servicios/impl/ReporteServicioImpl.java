@@ -143,7 +143,10 @@ public class ReporteServicioImpl implements ReporteServicio {
         reporteMapper.toDocument(editarReporteDTO, reporte);
         reporteRepo.save(reporte);
     }
-
+    public ReporteDTO obtenerReporteId(String id)  {
+        ObjectId objId = new ObjectId(id);
+        return reporteRepo.obtenerReporteId(objId);  // ← Aquí se conecta con tu repositorio
+    }
     @Override
     public void eliminarReporte(String id) throws Exception {
 
@@ -197,8 +200,33 @@ public class ReporteServicioImpl implements ReporteServicio {
 
     @Override
     public void marcarImportante(String id) throws Exception {
+        // Verifica que el ID es válido
+        if (!ObjectId.isValid(id)) {
+            throw new Exception("ID de reporte inválido");
+        }
 
+        // Obtener ID del usuario autenticado
+        String usuarioId = usuarioServicio.obtenerIdSesion();
+        ObjectId userObjectId = new ObjectId(usuarioId);
+
+        // Obtener reporte
+        Reporte reporte = reporteRepo.findById(id)
+                .orElseThrow(() -> new Exception("Reporte no encontrado"));
+
+        // Inicializar lista si está nula
+        if (reporte.getContadorImportante() == null) {
+            reporte.setContadorImportante(new ArrayList<>());
+        }
+
+        // Evitar votos duplicados
+        if (!reporte.getContadorImportante().contains(userObjectId)) {
+            reporte.getContadorImportante().add(userObjectId);
+            reporteRepo.save(reporte);
+        } else {
+            throw new Exception("Ya has marcado este reporte como importante");
+        }
     }
+
 
     @Override
     public void cambiarEstado(String idReporte, String nuevoEstado, String motivo, String idModerador) throws Exception {
@@ -209,12 +237,11 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         Reporte reporte = optional.get();
 
-        EstadoReporte nuevo = EstadoReporte.valueOf(nuevoEstado); // ← ⚠️ Verifica que esto no explote
+        EstadoReporte nuevo = EstadoReporte.valueOf(nuevoEstado);
 
-        // ✅ ACTUALIZA
         reporte.setEstadoActual(nuevo);
 
-        // ✅ AÑADE HISTORIAL
+
         HistorialReporte historial = HistorialReporte.builder()
                 .estado(nuevo)
                 .fecha(LocalDateTime.now())
@@ -228,7 +255,6 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         reporte.getHistorialReporte().add(historial);
 
-        // ✅ GUARDA CAMBIOS
         reporteRepo.save(reporte);
     }
 

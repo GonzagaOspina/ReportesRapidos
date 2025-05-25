@@ -27,9 +27,13 @@ public interface ReporteMapper {
     }
 
     // Método para actualizar un Reporte
-    @Mapping(target = "id", ignore = true) // Para que no se sobrescriba el ID
-    void toDocument(EditarReporteDTO editarReporteDTO, @MappingTarget Reporte reporte);
-
+    default void toDocument(EditarReporteDTO dto, @MappingTarget Reporte reporte) {
+        reporte.setTitulo(dto.titulo());
+        reporte.setDescripcion(dto.descripcion());
+        reporte.setUbicacion(map(dto.ubicacion()));
+        reporte.setCategoriaId(new ObjectId(dto.categoria()));
+        reporte.setImagenes(new java.util.ArrayList<>(dto.imagen())); // 🔥 AQUI está el FIX
+    }
     //Mapeo explícito
     default Ubicacion map(UbicacionDTO ubicacionDTO) {
         return ubicacionDTO != null ? new Ubicacion(ubicacionDTO.latitud(), ubicacionDTO.longitud()) : null;

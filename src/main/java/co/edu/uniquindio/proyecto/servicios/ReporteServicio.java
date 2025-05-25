@@ -34,5 +34,5 @@ public interface ReporteServicio {
    void marcarImportante( String id) throws Exception ;
 
     void cambiarEstado(String idReporte, String nuevoEstado, String motivo, String idModerador) throws Exception;
-
+    public ReporteDTO obtenerReporteId(String id);
 }

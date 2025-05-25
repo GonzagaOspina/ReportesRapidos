@@ -24,14 +24,14 @@ public interface ReporteRepo extends MongoRepository<Reporte, String> {
 
     @Aggregation({
             "{ $match: { _id: ?0 } }",
-            "{ $addFields: { cantidadImportante: { $cond: { if: { $isArray: '$contadorImportante' }, then: { $size: '$contadorImportante' }, else: 0 } } } }",
             "{ $lookup: { from: 'categorias', localField: 'categoriaId', foreignField: '_id', as: 'categoria' } }",
             "{ $unwind: '$categoria' }",
             "{ $lookup: { from: 'usuarios', localField: 'usuarioId', foreignField: '_id', as: 'usuario' } }",
             "{ $unwind: '$usuario' }",
-            "{ $project: { usuario: '$usuario.nombre', titulo: 1, categoria: '$categoria.nombre', descripcion: 1, ubicacion: 1, estadoActual: 1, imagenes: 1, fechaCreacion: 1, cantidadImportante: 1 } }"
+            "{ $project: { titulo: 1, descripcion: 1, ciudad: 1, ubicacion: 1, categoria: '$categoria._id', imagenes: 1, estadoActual: 1, nombreUsuario: '$usuario.nombre' } }"
     })
     ReporteDTO obtenerReporteId(ObjectId id);
+
 
     @Aggregation({
             "{ $match: { estadoActual: { $in: ['VERIFICADO', 'RECHAZADO', 'PENDIENTE'] } } }",
