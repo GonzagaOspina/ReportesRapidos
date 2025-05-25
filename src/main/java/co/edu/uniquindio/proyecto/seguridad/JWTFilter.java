@@ -15,10 +15,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-
 import java.io.IOException;
 import java.util.List;
-
 
 @Component
 @RequiredArgsConstructor
@@ -31,6 +29,12 @@ public class JWTFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         System.out.println("🛡️ Entrando a JWTFilter");
+
+        // ✅ Permitir solicitudes OPTIONS (preflight) para CORS
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
 
         String token = getToken(request);
         System.out.println("📦 Token recibido: " + token);

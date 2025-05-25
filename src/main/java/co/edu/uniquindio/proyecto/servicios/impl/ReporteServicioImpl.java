@@ -1,27 +1,28 @@
 package co.edu.uniquindio.proyecto.servicios.impl;
 
 import co.edu.uniquindio.proyecto.dto.comentarios.ComentarioDTO;
+import co.edu.uniquindio.proyecto.dto.comentarios.ComentarioRespuestaDTO;
+import co.edu.uniquindio.proyecto.dto.comentarios.CrearComentarioDTO;
 import co.edu.uniquindio.proyecto.dto.notificaciones.NotificacionDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.CrearReporteDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.EditarReporteDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.EstadoReporteDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.ReporteDTO;
 import co.edu.uniquindio.proyecto.excepciones.CategoriaNoEncontrada;
-import co.edu.uniquindio.proyecto.excepciones.DatoRepetidoException;
 import co.edu.uniquindio.proyecto.mapper.ComentarioMapper;
 import co.edu.uniquindio.proyecto.mapper.ReporteMapper;
 import co.edu.uniquindio.proyecto.mapper.ReporteMapperPersonalizado;
 import co.edu.uniquindio.proyecto.modelo.documentos.Categoria;
+import co.edu.uniquindio.proyecto.modelo.documentos.Comentario;
 import co.edu.uniquindio.proyecto.modelo.documentos.Reporte;
 import co.edu.uniquindio.proyecto.modelo.documentos.Usuario;
 import co.edu.uniquindio.proyecto.modelo.enums.EstadoReporte;
 import co.edu.uniquindio.proyecto.modelo.vo.HistorialReporte;
 import co.edu.uniquindio.proyecto.repositorios.CategoriaRepo;
+import co.edu.uniquindio.proyecto.repositorios.ComentarioRepo;
 import co.edu.uniquindio.proyecto.repositorios.ReporteRepo;
 import co.edu.uniquindio.proyecto.repositorios.UsuarioRepo;
 import co.edu.uniquindio.proyecto.servicios.EmailServicio;
 import co.edu.uniquindio.proyecto.servicios.ReporteServicio;
-import co.edu.uniquindio.proyecto.modelo.vo.Ubicacion;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +51,8 @@ public class ReporteServicioImpl implements ReporteServicio {
     private final ComentarioMapper comentarioMapper;
     private final EmailServicio emailServicio;
     private final ReporteMapperPersonalizado repMapper;
+    private final ComentarioRepo comentarioRepo;
+
 
     @Override
     public void crearReporte(CrearReporteDTO crearReporteDTO) throws Exception {
@@ -143,36 +148,37 @@ public class ReporteServicioImpl implements ReporteServicio {
         reporteMapper.toDocument(editarReporteDTO, reporte);
         reporteRepo.save(reporte);
     }
-
+    public ReporteDTO obtenerReporteId(String id)  {
+        ObjectId objId = new ObjectId(id);
+        return reporteRepo.obtenerReporteId(objId);  // ← Aquí se conecta con tu repositorio
+    }
     @Override
     public void eliminarReporte(String id) throws Exception {
-
-        // Validamos el id del reporte
         if (!ObjectId.isValid(id)) {
-            throw new Exception("No se encontró el reporte" + id);
+            throw new Exception("ID inválido");
         }
 
-        Optional<Reporte> reporteOptional = reporteRepo.findById(id);
+        Optional<Reporte> optional = reporteRepo.findById(id);
 
-        if (reporteOptional.isEmpty()) {
-            throw new Exception("No se encontró el reporte " + id);
+        if (optional.isEmpty()) {
+            throw new Exception("Reporte no encontrado");
         }
 
-        // Obtenemos el reporte que se quiere eliminar
-        Reporte reporte = reporteOptional.get();
+        Reporte reporte = optional.get();
 
-        // Obtenemos el usuario autenticado
-        String usernameAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
-        ObjectId usuarioAutenticadoId = new ObjectId(usernameAutenticado);
+        // Validación de usuario autenticado
+        String idUsuarioToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        ObjectId idUsuario = new ObjectId(idUsuarioToken);
 
-        // Verificamos si el reporte pertenece al usuario autenticado
-        if (!reporte.getUsuarioId().equals(usuarioAutenticadoId)) {
+        if (!reporte.getUsuarioId().equals(idUsuario)) {
             throw new AccessException("No tienes permiso para eliminar este reporte.");
         }
 
-        // Eliminamos el reporte
-        reporteRepo.deleteById(id);
+        // ⚠️ Aquí cambiamos el estado
+        reporte.setEstadoActual(EstadoReporte.ELIMINADO);
+        reporteRepo.save(reporte);
     }
+
 
     @Override
     public ReporteDTO obtenerReporte(String id) throws Exception {
@@ -186,9 +192,30 @@ public class ReporteServicioImpl implements ReporteServicio {
     }
 
     @Override
-    public void agregarComentario(String id, ComentarioDTO comentarioDTO) throws Exception {
+    public void agregarComentario(String idReporte, ComentarioDTO comentarioDTO) throws Exception {
+        if (!ObjectId.isValid(idReporte) || !ObjectId.isValid(comentarioDTO.idUsuario())) {
+            throw new IllegalArgumentException("ID de usuario o reporte inválido");
+        }
 
+        ObjectId usuarioId = new ObjectId(comentarioDTO.idUsuario());
+        ObjectId reporteObjectId = new ObjectId(idReporte);
+
+        String nombreUsuario = usuarioRepo.findById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no encontrado"))
+                .getNombre();
+
+        Comentario comentario = new Comentario(
+                new ObjectId(),
+                usuarioId,
+                nombreUsuario,
+                reporteObjectId,
+                comentarioDTO.comentario(),
+                LocalDateTime.now()
+        );
+        comentarioRepo.save(comentario);
     }
+
+
 
     @Override
     public List<ComentarioDTO> obtenerComentarios(String idReporte) throws Exception {
@@ -197,8 +224,33 @@ public class ReporteServicioImpl implements ReporteServicio {
 
     @Override
     public void marcarImportante(String id) throws Exception {
+        // Verifica que el ID es válido
+        if (!ObjectId.isValid(id)) {
+            throw new Exception("ID de reporte inválido");
+        }
 
+        // Obtener ID del usuario autenticado
+        String usuarioId = usuarioServicio.obtenerIdSesion();
+        ObjectId userObjectId = new ObjectId(usuarioId);
+
+        // Obtener reporte
+        Reporte reporte = reporteRepo.findById(id)
+                .orElseThrow(() -> new Exception("Reporte no encontrado"));
+
+        // Inicializar lista si está nula
+        if (reporte.getContadorImportante() == null) {
+            reporte.setContadorImportante(new ArrayList<>());
+        }
+
+        // Evitar votos duplicados
+        if (!reporte.getContadorImportante().contains(userObjectId)) {
+            reporte.getContadorImportante().add(userObjectId);
+            reporteRepo.save(reporte);
+        } else {
+            throw new Exception("Ya has marcado este reporte como importante");
+        }
     }
+
 
     @Override
     public void cambiarEstado(String idReporte, String nuevoEstado, String motivo, String idModerador) throws Exception {
@@ -209,12 +261,11 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         Reporte reporte = optional.get();
 
-        EstadoReporte nuevo = EstadoReporte.valueOf(nuevoEstado); // ← ⚠️ Verifica que esto no explote
+        EstadoReporte nuevo = EstadoReporte.valueOf(nuevoEstado);
 
-        // ✅ ACTUALIZA
         reporte.setEstadoActual(nuevo);
 
-        // ✅ AÑADE HISTORIAL
+
         HistorialReporte historial = HistorialReporte.builder()
                 .estado(nuevo)
                 .fecha(LocalDateTime.now())
@@ -228,8 +279,47 @@ public class ReporteServicioImpl implements ReporteServicio {
 
         reporte.getHistorialReporte().add(historial);
 
-        // ✅ GUARDA CAMBIOS
         reporteRepo.save(reporte);
+    }
+
+    @Override
+    public List<ComentarioRespuestaDTO> obtenerPorIdReporte(String idReporte) {
+        ObjectId reporteObjectId = new ObjectId(idReporte);
+
+        List<Comentario> comentarios = comentarioRepo.findAllByReporteId(reporteObjectId);
+
+        return comentarios.stream()
+                .map(comentario -> new ComentarioRespuestaDTO(
+                        comentario.getId().toString(),
+                        comentario.getMensaje(),
+                        comentario.getNombreUsuario(),
+                        comentario.getClienteId().toHexString(), // 👈 Aquí obtenemos el idUsuario
+                        comentario.getFechaCreacion()
+                ))
+                .collect(Collectors.toList());
+    }
+    @Override
+    public void editarComentario(ObjectId idComentario, String nuevoMensaje, String idUsuario) throws Exception {
+        Comentario comentario = comentarioRepo.findById(idComentario)
+                .orElseThrow(() -> new Exception("Comentario no encontrado"));
+
+        if (!comentario.getClienteId().toHexString().equals(idUsuario)) {
+            throw new SecurityException("No puedes editar este comentario");
+        }
+
+        comentario.setMensaje(nuevoMensaje);
+        comentarioRepo.save(comentario);
+    }
+    @Override
+    public void eliminarComentario(ObjectId idComentario, String idUsuario) throws Exception {
+        Comentario comentario = comentarioRepo.findById(idComentario)
+                .orElseThrow(() -> new Exception("Comentario no encontrado"));
+
+        if (!comentario.getClienteId().toHexString().equals(idUsuario)) {
+            throw new SecurityException("No puedes eliminar este comentario");
+        }
+
+        comentarioRepo.delete(comentario);
     }
 
 }

@@ -6,13 +6,14 @@ import co.edu.uniquindio.proyecto.dto.moderadores.InformeDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.HistorialReporteDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.ReporteDTO;
 import jakarta.validation.Valid;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
-public interface ModeradorServicio {
+public interface ModeradorServicio  {
 
     void crearCategoria(CategoriaDTO categoriaDTO) throws Exception;
 
@@ -20,6 +21,8 @@ public interface ModeradorServicio {
 
     void editarCategoria( String id, CategoriaDTO categoriaDTO) throws Exception;
 
+
+    CategoriaDTO obtenerCategoria(String id) throws Exception;
 
     void eliminarCategoria(String id) throws Exception;
 

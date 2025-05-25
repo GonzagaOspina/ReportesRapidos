@@ -75,4 +75,11 @@ public class ModeradorControlador {
         List<HistorialReporteDTO> historialReporte =moderadorServicio.obtenerHistorial(idReporte);
         return ResponseEntity.ok(new MensajeDTO<>(false, historialReporte));
     }
+    @GetMapping("/categorias/{id}")
+    @Operation(summary = "Obtener categoría por ID")
+    public ResponseEntity<MensajeDTO<CategoriaDTO>> obtenerCategoriaPorId(@PathVariable String id) throws Exception {
+        CategoriaDTO categoria = moderadorServicio.obtenerCategoria(id);
+        return ResponseEntity.ok(new MensajeDTO<>(false, categoria));
+    }
+
 }

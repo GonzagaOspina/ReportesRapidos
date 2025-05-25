@@ -1,13 +1,10 @@
 package co.edu.uniquindio.proyecto.servicios.impl;
 
-import co.edu.uniquindio.proyecto.dto.MensajeDTO;
 import co.edu.uniquindio.proyecto.dto.moderadores.CategoriaDTO;
 import co.edu.uniquindio.proyecto.dto.moderadores.InformeDTO;
 import co.edu.uniquindio.proyecto.dto.reportes.HistorialReporteDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.ReporteDTO;
 import co.edu.uniquindio.proyecto.excepciones.CategoriaNoEncontrada;
 import co.edu.uniquindio.proyecto.excepciones.DatoRepetidoException;
-import co.edu.uniquindio.proyecto.excepciones.UsuarioNoEncotradoException;
 import co.edu.uniquindio.proyecto.mapper.CategoriaMapper;
 import co.edu.uniquindio.proyecto.mapper.ReporteMapper;
 import co.edu.uniquindio.proyecto.modelo.documentos.Categoria;
@@ -19,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -67,13 +63,30 @@ public class ModeradorServicioImpl implements ModeradorServicio {
         ObjectId objectId = new ObjectId(id);
         Optional<Categoria> categoriaOptional = categoriaRepo.findById(objectId);
 
-        if(categoriaOptional.isEmpty()){
-            throw new CategoriaNoEncontrada("No se encontró la categoria: "+id);
+        if (categoriaOptional.isEmpty()) {
+            throw new CategoriaNoEncontrada("No se encontró la categoría: " + id);
         }
 
         Categoria categoria = categoriaOptional.get();
         categoria.setNombre(categoriaDTO.nombre());
+        categoria.setDescripcion(categoriaDTO.descripcion()); // ← ¡Faltaba esto!
+
         categoriaRepo.save(categoria);
+        System.out.println("✅ Categoría actualizada: " + categoria.getId());
+
+    }
+
+    @Override
+    public CategoriaDTO obtenerCategoria(String id) throws Exception {
+        Categoria categoria = categoriaRepo.findById(new ObjectId(id))
+                .orElseThrow(() -> new Exception("Categoría no encontrada"));
+
+
+        return new CategoriaDTO(
+                categoria.getId().toHexString(),
+                categoria.getNombre(),
+                categoria.getDescripcion()
+        );
     }
 
     @Override

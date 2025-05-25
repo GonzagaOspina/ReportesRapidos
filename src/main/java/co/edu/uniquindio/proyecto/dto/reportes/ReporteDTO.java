@@ -17,6 +17,6 @@ public record ReporteDTO(
         List<String> imagenes,
         UbicacionDTO ubicacion,
         String nombreUsuario,
-        String estadoActual// 👈 Esto debes tener
+        String estadoActual
 ) {}
 

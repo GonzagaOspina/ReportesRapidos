@@ -17,4 +17,6 @@ public interface UsuarioRepo extends MongoRepository<Usuario, ObjectId>{
     Optional<Usuario> findByEmail(@Email @NotBlank String email);
 
     Optional<Usuario> findById(ObjectId id);
+    Optional<Usuario> findByNombre(String nombre);
+
 }

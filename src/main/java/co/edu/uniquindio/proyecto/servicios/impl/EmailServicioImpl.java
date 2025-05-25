@@ -19,14 +19,14 @@ public class EmailServicioImpl implements EmailServicio {
     @Override
     public void enviarEmail(EmailDTO emailDTO) {
         Email email = EmailBuilder.startingBlank()
-                .from("moderadoralertas@gmail.com")
+                .from("zagasakiop@gmail.com")
                 .to(emailDTO.destinatario())
                 .withSubject(emailDTO.asunto())
                 .withPlainText(emailDTO.cuerpo())
                 .buildEmail();
 
         try (Mailer mailer = MailerBuilder
-                .withSMTPServer("smtp.gmail.com",587,"moderadoralertas@gmail.com","eufcmewgbortbdto")
+                .withSMTPServer("smtp.gmail.com",587,"zagasakiop@gmail.com","roqqzrlexgwtndrr")
                 .withTransportStrategy(TransportStrategy.SMTP_TLS)
                 .withDebugLogging(true)
                 .buildMailer()){

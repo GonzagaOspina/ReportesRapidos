@@ -14,5 +14,4 @@ public interface CategoriaRepo extends MongoRepository<Categoria, ObjectId> {
 
     List<Categoria> findAll();
 
-    Categoria findById(String id);
 }
