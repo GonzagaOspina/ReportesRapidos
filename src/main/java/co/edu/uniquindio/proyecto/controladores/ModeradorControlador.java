@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/moderador")
+@RequestMapping("/moderador")
 @SecurityRequirement(name = "bearerAuth")
 public class ModeradorControlador {
 

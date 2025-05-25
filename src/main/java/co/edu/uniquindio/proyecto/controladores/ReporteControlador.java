@@ -2,29 +2,33 @@ package co.edu.uniquindio.proyecto.controladores;
 
 import co.edu.uniquindio.proyecto.dto.MensajeDTO;
 import co.edu.uniquindio.proyecto.dto.comentarios.ComentarioDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.CrearReporteDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.EditarReporteDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.EstadoReporteDTO;
-import co.edu.uniquindio.proyecto.dto.reportes.ReporteDTO;
+import co.edu.uniquindio.proyecto.dto.reportes.*;
+import co.edu.uniquindio.proyecto.seguridad.JWTUtils;
 import co.edu.uniquindio.proyecto.servicios.ReporteServicio;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/reportes")
+@RequestMapping("/reportes")
 public class ReporteControlador{
 
     private final ReporteServicio reporteServicio; // Inyectar servicio
+    @Autowired
+    private JWTUtils jwtUtils;
 
-    @PostMapping
+
+    @PostMapping("/crearReporte")
     @Operation(summary = "crear reporte")
     public ResponseEntity<MensajeDTO<String>> crearReporte(@Valid @RequestBody CrearReporteDTO crearReporteDTO) throws Exception {
         reporteServicio.crearReporte(crearReporteDTO);
@@ -38,7 +42,7 @@ public class ReporteControlador{
         return ResponseEntity.ok(new MensajeDTO<>(false,reportes));
     }
 
-    @GetMapping("/usuario")
+    @GetMapping("/mis-reportes")
     @Operation(summary = "mostrar reportes usario dado")
     public ResponseEntity<MensajeDTO<List<ReporteDTO>>> obtenerReportesUsuario() throws Exception {
         List<ReporteDTO> reportes=reporteServicio.obtenerReportesUsuario();
@@ -56,11 +60,16 @@ public class ReporteControlador{
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "editar reportes dado")
     public ResponseEntity<MensajeDTO<String>> editarReporte(
             @PathVariable String id,
             @Valid @RequestBody EditarReporteDTO reporteDTO) throws Exception {
+
+        reporteServicio.editarReporte(id, reporteDTO);
+
         return ResponseEntity.ok(new MensajeDTO<>(false, "Reporte actualizado"));
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<MensajeDTO<String>> eliminarReporte(@PathVariable String id) throws Exception {
@@ -68,9 +77,12 @@ public class ReporteControlador{
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MensajeDTO<String>> obtenerReporte(@PathVariable String id) throws Exception {
-        return ResponseEntity.ok(new MensajeDTO<>(false, "reporte"));
+    @Operation(summary = "Obtener un reporte por su ID")
+    public ResponseEntity<MensajeDTO<ReporteDTO>> obtenerReporte(@PathVariable String id) throws Exception {
+        ReporteDTO dto = reporteServicio.obtenerReporteId(id);  // ← Este método debe devolver el DTO con toda la info
+        return ResponseEntity.ok(new MensajeDTO<>(false, dto)); // ← Esto sí es lo que espera el frontend
     }
+
 
     @PostMapping("/{id}/comentario")
     public ResponseEntity<MensajeDTO<String>> agregarComentario(
@@ -85,15 +97,25 @@ public class ReporteControlador{
     }
 
     @PutMapping("/{id}/importante")
+    @Operation(summary = "Marcar un reporte como importante")
     public ResponseEntity<MensajeDTO<String>> marcarImportante(@PathVariable String id) throws Exception {
+        reporteServicio.marcarImportante(id);
         return ResponseEntity.ok(new MensajeDTO<>(false, "Reporte marcado como importante"));
     }
+
 
     @PostMapping("/{id}/estado")
     public ResponseEntity<MensajeDTO<String>> cambiarEstado(
             @PathVariable String id,
-            @Valid @RequestBody EstadoReporteDTO estadoDTO) throws Exception {
-        return ResponseEntity.ok(new MensajeDTO<>(false, "Estado del reporte actualizado"));
+            @RequestBody EstadoSinUsuarioDTO dto,
+            HttpServletRequest request
+    ) throws Exception {
+        String token = request.getHeader("Authorization");
+        String idModerador = jwtUtils.obtenerIdUsuarioDesdeToken(token);
+
+        reporteServicio.cambiarEstado(id, dto.nuevoEstado(), dto.motivo(), idModerador);
+        return ResponseEntity.ok(new MensajeDTO<>(false, "✅ Estado actualizado correctamente"));
     }
+
 
 }

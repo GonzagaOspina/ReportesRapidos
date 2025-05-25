@@ -10,9 +10,12 @@ import co.edu.uniquindio.proyecto.excepciones.CategoriaNoEncontrada;
 import co.edu.uniquindio.proyecto.excepciones.DatoRepetidoException;
 import co.edu.uniquindio.proyecto.mapper.ComentarioMapper;
 import co.edu.uniquindio.proyecto.mapper.ReporteMapper;
+import co.edu.uniquindio.proyecto.mapper.ReporteMapperPersonalizado;
 import co.edu.uniquindio.proyecto.modelo.documentos.Categoria;
 import co.edu.uniquindio.proyecto.modelo.documentos.Reporte;
 import co.edu.uniquindio.proyecto.modelo.documentos.Usuario;
+import co.edu.uniquindio.proyecto.modelo.enums.EstadoReporte;
+import co.edu.uniquindio.proyecto.modelo.vo.HistorialReporte;
 import co.edu.uniquindio.proyecto.repositorios.CategoriaRepo;
 import co.edu.uniquindio.proyecto.repositorios.ReporteRepo;
 import co.edu.uniquindio.proyecto.repositorios.UsuarioRepo;
@@ -26,6 +29,8 @@ import org.springframework.expression.AccessException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,6 +47,7 @@ public class ReporteServicioImpl implements ReporteServicio {
     private final CategoriaRepo categoriaRepo;
     private final ComentarioMapper comentarioMapper;
     private final EmailServicio emailServicio;
+    private final ReporteMapperPersonalizado repMapper;
 
     @Override
     public void crearReporte(CrearReporteDTO crearReporteDTO) throws Exception {
@@ -67,11 +73,11 @@ public class ReporteServicioImpl implements ReporteServicio {
         reporte.setCategoriaId(categoria.getId());
 
         reporteRepo.save(reporte);
-//        NotificacionDTO notificacionDTO = new NotificacionDTO(
-  //              "Nuevo Reporte",
-    //            "Se acaba de crear un nuevo reporte: " + reporte.getTitulo(),
-      //          "reports"
-        //);
+        NotificacionDTO notificacionDTO = new NotificacionDTO(
+                "Nuevo Reporte",
+                "Se acaba de crear un nuevo reporte: " + reporte.getTitulo(),
+                "reports"
+        );
 
 
         //webSocketNotificationService.notificarClientes(notificacionDTO);
@@ -85,7 +91,10 @@ public class ReporteServicioImpl implements ReporteServicio {
 
     @Override
     public List<ReporteDTO> obtenerReportes() {
-        return reporteRepo.obtenerReportes();
+        return reporteRepo.findAll()
+                .stream()
+                .map(repMapper::toDTO)
+                .toList();
     }
 
 
@@ -101,6 +110,7 @@ public class ReporteServicioImpl implements ReporteServicio {
     public List<ReporteDTO> obtenerReportesCerca(double latitud, double longitud) {
         return reporteRepo.obtenerReportesCerca(latitud, longitud);
     }
+
 
     @Override
     public List<ReporteDTO> obtenerTopReportes() throws Exception {
@@ -133,7 +143,10 @@ public class ReporteServicioImpl implements ReporteServicio {
         reporteMapper.toDocument(editarReporteDTO, reporte);
         reporteRepo.save(reporte);
     }
-
+    public ReporteDTO obtenerReporteId(String id)  {
+        ObjectId objId = new ObjectId(id);
+        return reporteRepo.obtenerReporteId(objId);  // ← Aquí se conecta con tu repositorio
+    }
     @Override
     public void eliminarReporte(String id) throws Exception {
 
@@ -187,11 +200,62 @@ public class ReporteServicioImpl implements ReporteServicio {
 
     @Override
     public void marcarImportante(String id) throws Exception {
+        // Verifica que el ID es válido
+        if (!ObjectId.isValid(id)) {
+            throw new Exception("ID de reporte inválido");
+        }
 
+        // Obtener ID del usuario autenticado
+        String usuarioId = usuarioServicio.obtenerIdSesion();
+        ObjectId userObjectId = new ObjectId(usuarioId);
+
+        // Obtener reporte
+        Reporte reporte = reporteRepo.findById(id)
+                .orElseThrow(() -> new Exception("Reporte no encontrado"));
+
+        // Inicializar lista si está nula
+        if (reporte.getContadorImportante() == null) {
+            reporte.setContadorImportante(new ArrayList<>());
+        }
+
+        // Evitar votos duplicados
+        if (!reporte.getContadorImportante().contains(userObjectId)) {
+            reporte.getContadorImportante().add(userObjectId);
+            reporteRepo.save(reporte);
+        } else {
+            throw new Exception("Ya has marcado este reporte como importante");
+        }
     }
+
 
     @Override
-    public void cambiarEstado(String id, EstadoReporteDTO estadoDTO) throws Exception {
+    public void cambiarEstado(String idReporte, String nuevoEstado, String motivo, String idModerador) throws Exception {
+        Optional<Reporte> optional = reporteRepo.findById(new ObjectId(idReporte).toString());
+        if (optional.isEmpty()) {
+            throw new Exception("No se encontró el reporte con id: " + idReporte);
+        }
 
+        Reporte reporte = optional.get();
+
+        EstadoReporte nuevo = EstadoReporte.valueOf(nuevoEstado);
+
+        reporte.setEstadoActual(nuevo);
+
+
+        HistorialReporte historial = HistorialReporte.builder()
+                .estado(nuevo)
+                .fecha(LocalDateTime.now())
+                .motivo(motivo)
+                .idUsuario(new ObjectId(idModerador))
+                .build();
+
+        if (reporte.getHistorialReporte() == null) {
+            reporte.setHistorialReporte(new ArrayList<>());
+        }
+
+        reporte.getHistorialReporte().add(historial);
+
+        reporteRepo.save(reporte);
     }
+
 }

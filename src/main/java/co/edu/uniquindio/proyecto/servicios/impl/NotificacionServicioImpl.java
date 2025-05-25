@@ -3,7 +3,9 @@ package co.edu.uniquindio.proyecto.servicios.impl;
 import co.edu.uniquindio.proyecto.dto.notificaciones.NotificacionDTO;
 import co.edu.uniquindio.proyecto.dto.notificaciones.NotificacionUbicacionDTO;
 import co.edu.uniquindio.proyecto.servicios.NotificacionSevicio;
+import org.springframework.stereotype.Service;
 
+@Service
 public class NotificacionServicioImpl implements NotificacionSevicio {
     @Override
     public void enviarNotificacion(NotificacionDTO notificacionDTO) throws Exception {

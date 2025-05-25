@@ -13,6 +13,6 @@ public interface NotificacionSevicio {
     @PostMapping("/email")
     void enviarNotificacion(NotificacionDTO notificacionDTO) throws Exception;
 
-   void enviarNotificacionUbicacion(@Valid @RequestBody NotificacionUbicacionDTO notificacionUbicacionDTO) throws Exception;
+    void enviarNotificacionUbicacion(@Valid @RequestBody NotificacionUbicacionDTO notificacionUbicacionDTO) throws Exception;
 
 }

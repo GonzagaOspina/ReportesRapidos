@@ -41,5 +41,14 @@ public class JWTUtils {
         return Keys.hmacShaKeyFor(secretKeyBytes);
     }
 
+    public String obtenerIdUsuarioDesdeToken(String token) {
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Token no válido");
+        }
+
+        token = token.substring(7); // Elimina "Bearer "
+        Claims claims = parseJwt(token).getPayload();
+        return claims.getSubject(); // El `id` que pusiste en .subject(id)
+    }
 
 }
