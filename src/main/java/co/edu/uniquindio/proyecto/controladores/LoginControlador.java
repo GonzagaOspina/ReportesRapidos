@@ -46,6 +46,7 @@ public class LoginControlador {
 
     @PostMapping("/password/nuevo")
     public ResponseEntity<MensajeDTO<String>> actualizarPassword(@Valid @RequestBody PasswordNuevoDTO passwordNuevoDTO) throws Exception {
+        
         loginServicio.actualizarPassword(passwordNuevoDTO);
         return ResponseEntity.ok(new MensajeDTO<>(false, "Contraseña actualizada satisfactoriamente"));
     }
