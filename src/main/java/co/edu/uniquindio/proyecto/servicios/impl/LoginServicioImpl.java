@@ -36,28 +36,28 @@ public class LoginServicioImpl implements LoginServicio {
 
     @Override
     public TokenDTO login(LoginRequestDTO loginDTO) throws Exception {
-
-
+        System.out.println("Buscando usuario: " + loginDTO.email());
         Optional<Usuario> optionalUsuario = usuarioRepo.findByEmail(loginDTO.email());
-
 
         if(optionalUsuario.isEmpty()){
             throw new Exception("El usuario no existe en la base de datos");
         }
 
-
         Usuario usuario = optionalUsuario.get();
+        System.out.println("Usuario encontrado con estado: " + usuario.getEstado());
 
-    if(usuario.getEstado()!= EstadoUsuario.ACTIVO){
-        throw new Exception("El usuario no se encuentra activo");
-    }
+        if(usuario.getEstado()!= EstadoUsuario.ACTIVO){
+            throw new Exception("El usuario no se encuentra activo");
+        }
 
-    if(!passwordEncoder.matches(loginDTO.password(), usuario.getPassword())){
+        System.out.println("Validando contraseña");
+        if(!passwordEncoder.matches(loginDTO.password(), usuario.getPassword())){
             throw new Exception("Contrasena no correcta");
-    }
+        }
 
-
-    String token = jwtUtils.generateToken(usuario.getId().toString(), crearClaims(usuario));
+        System.out.println("Generando token para usuario ID: " + usuario.getId());
+        String token = jwtUtils.generateToken(usuario.getId().toString(), crearClaims(usuario));
+        System.out.println("Token generado: " + token);
         return new TokenDTO(token);
     }
 
